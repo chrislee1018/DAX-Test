@@ -1,6 +1,29 @@
 # DAX-Test
 
+
 ```
+
+Now that the relevant assembly is in place, running the script below will create the corresponding function that allows it to be used within the database.
+
+```TSQL
+IF OBJECT_ID('[NumberAfterString]') IS NOT NULL
+DROP FUNCTION [NumberAfterString]
+GO
+CREATE FUNCTION [NumberAfterString]
+(
+  @string_in NVARCHAR(MAX),
+  @pattern NVARCHAR(255)
+)
+RETURNS NVARCHAR(255)
+WITH EXECUTE AS CALLER
+AS 
+EXTERNAL NAME [NumberAfterString].[CLRFunction].[NumberAfterString]
+GO
+
+```
+
+
+```DAX
 coeff corr = 
 var __muX =calculate(AVERAGE(CorrelHeadSizeBrainWeight[Head_Size]))
 var __muY=calculate(AVERAGE(CorrelHeadSizeBrainWeight[Brain_Weight]))
