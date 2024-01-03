@@ -1,6 +1,6 @@
 # DAX-Test
 
-''''
+```
 coeff corr = 
 var __muX =calculate(AVERAGE(CorrelHeadSizeBrainWeight[Head_Size]))
 var __muY=calculate(AVERAGE(CorrelHeadSizeBrainWeight[Brain_Weight]))
@@ -43,8 +43,4 @@ RETURN
         Intercept + Slope * 'Date'[Date]
     )
 
-
-
-
-
-'''
+```
