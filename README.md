@@ -1,73 +1,50 @@
 # DAX-Test
 
+''''
+coeff corr = 
+var __muX =calculate(AVERAGE(CorrelHeadSizeBrainWeight[Head_Size]))
+var __muY=calculate(AVERAGE(CorrelHeadSizeBrainWeight[Brain_Weight]))
+var __numerator  =  sumx('CorrelHeadSizeBrainWeight',( [x]-__muX)*([y]-__muY))
+var __denominator=  SQRT(sumx('CorrelHeadSizeBrainWeight',([x]-__muX)^2)*sumx('CorrelHeadSizeBrainWeight',([y]-__muY)^2))
+return 
+divide(__numerator,__denominator)
 
-'''DAX
-DEFINE
-    TABLE Dates =
-    GENERATE (
-    CALENDAR ( DATE ( 2020, 1, 1 ), DATE ( 2020, 4, 30 ) ),
-    VAR CurrentDate = [Date]
-    RETURN
-    ROW (
-   
-    // Date values
-   
-    "DateInt", 			FORMAT ( CurrentDate, "yyyymmdd" ), // Format: 20200101
-    "DateShort", 		FORMAT ( CurrentDate, "dd/mm/yyyy" ), // Format: 01/01/2020
-                    
-    // Datetime values
-    
-    "DateTimeStart", 	[Date], // Format: 01/01/2020 00:00:00
-    "DateTimeEnd",      [Date] + TIME ( 23, 59, 59 ), // Format: 01/01/2020 23:59:59
-                    
-    // Weekday values
-    
-    "WeekdayName", 		FORMAT ( CurrentDate, "dddd" ), // Format: Wednesday
-    "WeekdayNameShort", FORMAT ( CurrentDate, "ddd" ), // Format: Wed 
-                 
-    // Start and end of week values (Monday and Sunday)
-    
-    "WeekStartDateMonday",
-    FORMAT ( CurrentDate - WEEKDAY ( CurrentDate, 2 ) + 1, "dd/mm/yyyy" ), // Format: 30/12/2019
-    "WeekEndDateSunday", 
-    FORMAT ( CurrentDate - WEEKDAY ( CurrentDate, 2 ) + 7, "dd/mm/yyyy" ), // Format: 05/01/202        
-       
-    // Month values
-   
-    "MonthName", 		FORMAT ( [Date], "mmmm" ), // Format: January
-    "MonthNameShort", 	FORMAT ( CurrentDate, "Mmm" ), // Format: Jan
-    "MonthNumber", 		MONTH ( [Date] ), // Format: 1  
-        
-    // Start and end of month values
-   
-    "StartOfMonth", 	FORMAT(EOMONTH(CurrentDate, -1) +1, "dd/mm/yyyy"),  // Format: 01/01/2020		 				
-    "EndOfMonth", 		FORMAT(EOMONTH(CurrentDate, 0), "dd/mm/yyyy"), // Format: 31/01/2020 
-    
-    // Year values 
-  
-    "CalendarYear",	   YEAR ( [Date] ), // Format: 2020
-  	"FinancialYear",
-  IF ( MONTH ( currentDate ) < 4, YEAR ( CurrentDate ) - 1, YEAR ( CurrentDate ) ) & " - "
-  & IF ( MONTH ( currentDate ) < 4, YEAR ( currentDate ), YEAR ( currentDate ) + 1 ) // Format: 2019 - 2020
-                )
+Skewness = 
+VAR __mean = AVERAGEX(ALL('Data'),[Values])
+VAR __stddev = STDEVX.P(ALL('Data'),[Values])
+VAR __n = COUNTROWS(ALL('Data'))
+VAR __table = ADDCOLUMNS('Data',"__skew",POWER(([Values]-__mean),3))
+VAR __sum = SUMX(__table,[__skew])
+RETURN
+DIVIDE(__sum,POWER(__stddev,3),0) * DIVIDE(1,__n,0)
+
+Simple linear regression =
+VAR Known =
+    FILTER (
+        SELECTCOLUMNS (
+            ALLSELECTED ( 'Date'[Date] ),
+            "Known[X]", 'Date'[Date],
+            "Known[Y]", [Measure Y]
+        ),
+        AND (
+            NOT ( ISBLANK ( Known[X] ) ),
+            NOT ( ISBLANK ( Known[Y] ) )
         )
+    )
+VAR SlopeIntercept =
+    LINESTX(Known, Known[Y], Known[X])
+VAR Slope =
+    SELECTCOLUMNS(SlopeIntercept, [Slope1])
+VAR Intercept = 
+    SELECTCOLUMNS(SlopeIntercept, [Intercept])
+RETURN
+    SUMX (
+        DISTINCT ( 'Date'[Date] ),
+        Intercept + Slope * 'Date'[Date]
+    )
 
-EVALUATE
-SUMMARIZECOLUMNS (
-    DATES[DateInt],
-    DATES[DateShort],
-    DATES[DateTimeStart],
-    DATES[DateTimeEnd],
-    DATES[WeekdayName],
-    DATES[WeekdayNameShort],
-    DATES[WeekStartDateMonday],
-    DATES[WeekEndDateSunday],
-    DATES[MonthName],
-    DATES[MonthNameShort],
-    DATES[MonthNumber],
-    DATES[StartOfMonth],
-    DATES[EndOfMonth],
-    DATES[CalendarYear],
-    DATES[FinancialYear]
-)
+
+
+
+
 '''
